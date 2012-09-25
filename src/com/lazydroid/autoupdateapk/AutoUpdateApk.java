@@ -73,7 +73,7 @@ public class AutoUpdateApk extends Observable {
 	//
 	//		aua = new AutoUpdateApk(getApplicationContext());	<-- and add this line too
 	//
-	AutoUpdateApk(Context ctx) {
+	public AutoUpdateApk(Context ctx) {
 		setupVariables(ctx);
 	}
 
