@@ -210,35 +210,15 @@ public class AutoUpdateApk extends Observable {
 
 			// do application-specific task(s) based on the current network state, such 
 			// as enabling queuing of HTTP requests when currentNetworkInfo is connected etc.
-			registerPeriodicUpdate(currentNetworkInfo);
+			boolean not_mobile = currentNetworkInfo.getTypeName().equalsIgnoreCase("MOBILE") ? false : true;
+			if( currentNetworkInfo.isConnected() && (mobile_updates || not_mobile) ) {
+				checkUpdates(false);
+				updateHandler.postDelayed(periodicUpdate, UPDATE_INTERVAL);
+			} else {
+				updateHandler.removeCallbacks(periodicUpdate);	// no network anyway
+			}
 		}
 	};
-	
-	private void registerPeriodicUpdate(NetworkInfo currentNetworkInfo) {
-		boolean enable;
-		
-		// if network info is null, this means we don't have any connection
-		if (currentNetworkInfo == null) {
-			enable = false;
-		} else {
-			boolean not_mobile = currentNetworkInfo.getTypeName().equalsIgnoreCase("MOBILE") ? false : true;
-			enable = currentNetworkInfo.isConnected() && (mobile_updates || not_mobile);
-		}
-		
-		if( enable ) {
-			checkUpdates(false);
-			updateHandler.postDelayed(periodicUpdate, UPDATE_INTERVAL);
-		} else {
-			updateHandler.removeCallbacks(periodicUpdate);	// no network anyway
-		}
-	}
-	
-	private void registerPeriodicUpdate() {
-		ConnectivityManager connectivtyManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
-		if (connectivtyManager != null) {
-			registerPeriodicUpdate(connectivtyManager.getActiveNetworkInfo());
-		}
-	}
 
 	private void setupVariables(Context ctx) {
 		context = ctx;
@@ -275,7 +255,6 @@ public class AutoUpdateApk extends Observable {
 		raise_notification();
 
 		if( haveInternetPermissions() ) {
-			registerPeriodicUpdate();
 			context.registerReceiver( connectivity_receiver,
 					new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 		}
